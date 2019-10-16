@@ -13,6 +13,8 @@ let entities = [];
 let gameRun;
 let score = 0;
 let counterMod = 1;
+let bgAudio = new Audio('audio/songtember19_5_2.wav');
+bgAudio.volume = 0.3;
 
 const PI_2 = 2*Math.PI;
 
@@ -52,8 +54,24 @@ function loadImages(sources, callback) {
     }
 }
 
+function init()
+{
+    bgAudio.play();
+    window.removeEventListener("keypress", init);
+    window.requestAnimationFrame(step);
+}
+
 loadImages(sources, function() {
-    window.requestAnimationFrame(step); 
+    ctx.drawImage(images.sky, 0 , 0, 1120, 800);	
+    ctx.drawImage(images.bg, bgPos, 0);	
+    ctx.drawImage(images.bg, bgPos - 1120, 0);	
+    ctx.drawImage(images.fg, fgPos, 0);
+    ctx.drawImage(images.fg, fgPos - 1120, 0);
+    ctx.font = "80px Courier";
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = "center";
+    ctx.fillText("Press to play", canvas.width / 2, canvas.height / 2);
+    window.addEventListener("keypress", init, false);
 });
 
 const Player = function(x, y, id) {
@@ -155,7 +173,7 @@ const Entity = function(x, y, character, size)
         let static = Math.random() * 4;
 
         ctx.font = this.size + static + "px Courier";
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = 'rgba(235, 255, 255, 1)';
         ctx.fillText(this.character[this.tick], x + static, y + static);
 
         this.tick++;
@@ -286,7 +304,7 @@ const Beam = function()
         ctx.lineTo(player.x + player.offset + this.static * Math.cos(this.angle),
                 player.y + player.offset + this.static * Math.sin(this.angle));
         ctx.lineWidth = Math.random() * 3;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
         ctx.stroke();
 
         this.static = this.static + 20;
@@ -395,6 +413,7 @@ document.addEventListener('mouseup', function(e) {
 
 let counter = 0;
 let start = null;
+let moveParticle = 0;
 
 function step(timestamp) {
     if (!start) start = timestamp;
@@ -411,8 +430,13 @@ function step(timestamp) {
     player.update();
 
     if (move.right || move.left || move.up || move.down) {
-        if(player.y < safeLevel)
-            particles.push(Particle(player.x, player.y));
+        if(player.y < safeLevel) {
+            if (moveParticle > 5) {
+                particles.push(Particle(player.x, player.y));
+                moveParticle = 0;
+            }
+            moveParticle++;
+        }
     }
 
     if (beam.active) {
@@ -440,11 +464,14 @@ function step(timestamp) {
                 object.splice(index, 1);
                 healthBar.update(+3);
                 score++;
-                if (score % 10 == 1)
+                if (score % 10 == 1) {
                     counterMod++;
+                }
 
-                for(let i = 0; i < 3; i++)
-                    particles.push(Particle(element.x, element.y, "rgba(255, 255, 255, 0.8)"));
+                for(let i = 0; i < random(2, 5); i++) {
+                    // particles.push(Particle(element.x, element.y, 'rgba(190, 240, 255, 0.8)'));
+                    particles.push(Particle(element.x, element.y, 'rgba(235, 255, 255, 0.8)'));
+                }
             }
         }
         element.draw();
@@ -455,7 +482,7 @@ function step(timestamp) {
     });
 
     if(counter > 200) {
-        entities.push(Entity(random(30, 1090), random(30,650)));
+        entities.push(Entity(random(70, 1050), random(50,550)));
         counter = 0;
     }
 
