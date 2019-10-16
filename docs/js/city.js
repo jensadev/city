@@ -201,15 +201,19 @@ const HealthBar = function()
     healthBar.maxHealth = 150;
     healthBar.x = 10;
     healthBar.y = 10;
-    healthBar.width = 100;
+    healthBar.width = 130;
     healthBar.height = 12;
     healthBar.lastChange = "";
 
     healthBar.draw = function ()
     {
         ctx.beginPath();
+        ctx.rect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+        ctx.fill();
+        ctx.beginPath();
         ctx.rect(this.x, this.y, this.health, this.height);
-        ctx.fillStyle = '#ff0000';
+        ctx.fillStyle = 'rgba(255, 0, 0, 1)';
         ctx.fill();
         ctx.beginPath();
         ctx.rect(this.x, this.y, this.width, this.height);
@@ -217,9 +221,16 @@ const HealthBar = function()
         ctx.lineWidth = 1;
         ctx.stroke();
     }
+
     healthBar.update = function(val)
     {
-        this.health = this.health + val;
+        if (this.health < this.maxHealth) {
+            this.health = this.health + val;
+            
+            if(this.health > this.maxHealth) {
+                this.health = this.maxHealth;
+            }
+        }
     }
     return healthBar;
 }
@@ -375,12 +386,10 @@ document.addEventListener('mousemove', function(e) {
 }, false);
 
 document.addEventListener('mousedown', function(e) {
-    console.log(e);
     beam.active = true;
 }, false);
 
 document.addEventListener('mouseup', function(e) {
-    console.log(e);
     beam.active = false;
 }, false);
 
@@ -475,10 +484,24 @@ function step(timestamp) {
     if(healthBar.health < 0 || entities.length > 10) {
         window.cancelAnimationFrame(gameRun);
 
+        let highscore = localStorage.getItem("highscore");
+
+        if(highscore !== null){
+            if (score > highscore) {
+                localStorage.setItem("highscore", score);      
+            }
+        }
+        else{
+            localStorage.setItem("highscore", score);
+        }
+
         ctx.font = "80px Courier";
         ctx.fillStyle = 'red';
         ctx.textAlign = "center";
-        ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2);    
+        ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2);
+        ctx.font = "20px Courier";
+        ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2 + 30);
+        ctx.fillText("Highscore: " + highscore, canvas.width / 2, canvas.height / 2 + 60);
     }
 }
 
