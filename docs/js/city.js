@@ -9,6 +9,10 @@ let bgPos = 0;
 let fgPos = 0;
 let mouseX, mouseY;
 let particles = [];
+let entities = [];
+let gameRun;
+let score = 0;
+let counterMod = 1;
 
 const PI_2 = 2*Math.PI;
 
@@ -59,15 +63,34 @@ const Player = function(x, y, id) {
     player.y = y;
     player.speed = 8;
     player.healthTick = 0;
+    player.size = 16;
     player.draw = function() {
-        if (beam.active)
-            ctx.drawImage(images.playerDanger, this.x, this.y);
-        else if(this.y < dangerLevel)
-            ctx.drawImage(images.playerDanger, this.x, this.y);
-        else if(this.y < warningLevel)
-            ctx.drawImage(images.playerWarning, this.x, this.y);
-        else
-            ctx.drawImage(images.player, this.x, this.y);
+        if (beam.active) {
+            // ctx.drawImage(images.playerDanger, this.x, this.y);
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.size, this.size);
+            ctx.fillStyle = 'rgba(255,55,55,0.5)';
+            ctx.fill();
+        } else if(this.y < dangerLevel) {
+            // ctx.drawImage(images.playerDanger, this.x, this.y);
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.size, this.size);
+            ctx.fillStyle = 'rgba(255,55,55,0.5)';
+            ctx.fill();
+        } else if(this.y < warningLevel) {
+            // ctx.drawImage(images.playerWarning, this.x, this.y);
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.size, this.size);
+            ctx.fillStyle = 'rgba(200,100,100,0.7)';
+            ctx.fill();
+        } else {
+            // ctx.drawImage(images.player, this.x, this.y);
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.size, this.size);
+            ctx.fillStyle = 'rgba(155,155,155,0.9)';
+            ctx.fill();
+        }
+
     }
     player.update = function() {
         if(move.right && this.x < 1088 ) this.x = this.x + this.speed;
@@ -112,22 +135,39 @@ const Player = function(x, y, id) {
 
 let player = Player(1120 / 2, 600, 1);
 
-function randomColor() {
-    var value = 500;
-    var r = 50+(Math.floor(Math.random()*205));
-    var g = 0;
-    var b = 50+(Math.floor(Math.random()*205));
-    return "rgba(" + r + "," + g + "," + b + ", 0.5)"
+const Entity = function(x, y, character, size)
+{
+    const entity = {};
+    entity.x = x;
+    entity.y = y;
+    entity.character = character || Math.random().toString(36).substr(2, 8);
+    entity.size = size || 14;
+    entity.tick = 0;
+    entity.draw = function()
+    {
+        if(this.tick > 7)
+            this.tick = 0;
+
+        let static = Math.random() * 4;
+
+        ctx.font = this.size + static + "px Courier";
+        ctx.fillStyle = '#fff';
+        ctx.fillText(this.character[this.tick], x + static, y + static);
+
+        this.tick++;
+    }
+    return entity;
 }
 
-const Particle = function(x, y)
+const Particle = function(x, y, color)
 {
     let particle = {};
-    particle.x = x + 16;
-    particle.y = y +16;
+    particle.x = x + 8;
+    particle.y = y + 8;
     particle.dy = 1 + (Math.random()*3);
     particle.dx = -1 + (Math.random()*2);
-    particle.color = (player.y < dangerLevel || beam.active) ? "rgba(255,55,55,0.5)" :
+    particle.color = (color) ? color :
+                    (player.y < dangerLevel || beam.active) ? "rgba(255,55,55,0.5)" :
                     (player.y < warningLevel) ? "rgba(200,100,100,0.4)" :
                     "rgba(155,155,155,0.3)";
     particle.size = 2 + Math.floor(Math.random()*2);
@@ -135,14 +175,6 @@ const Particle = function(x, y)
     {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, PI_2, false);
-        // if (beam.active)
-        //     ctx.fillStyle = this.danger;
-        // else if(player.y < dangerLevel)
-        //     ctx.fillStyle = this.danger;
-        // else if(player.y < warningLevel)
-        //     ctx.fillStyle = this.warning;
-        // else
-        //     ctx.fillStyle = this.color;
 
         ctx.fillStyle = this.color;
         
@@ -180,11 +212,6 @@ const HealthBar = function()
         ctx.strokeStyle = '#000'
         ctx.lineWidth = 1;
         ctx.stroke();
-
-        // ctx.font = "10px Courier";
-        // ctx.fillStyle = '#fff';
-        // ctx.fillText(this.health, 50, 19);
-
     }
     healthBar.update = function(val)
     {
@@ -216,42 +243,54 @@ const Beam = function()
     beam.draw = function ()
     {
         ctx.beginPath();
-        ctx.moveTo(player.x + 16, player.y + 16);
-        ctx.lineTo(player.x + 16 + (this.length - 8) * Math.cos(this.angle),
-                player.y + 16 + (this.length - 8) * Math.sin(this.angle));
+        ctx.moveTo(player.x + 8, player.y + 8);
+        ctx.lineTo(player.x + 8 + (this.length - 4) * Math.cos(this.angle),
+                player.y + 8 + (this.length - 4) * Math.sin(this.angle));
         ctx.lineWidth = 7;
         ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(player.x + 16, player.y + 16);
-        ctx.lineTo(player.x + 16 + (this.length - 4) * Math.cos(this.angle),
-                player.y + 16 + (this.length - 4) * Math.sin(this.angle));
+        ctx.moveTo(player.x + 8, player.y + 8);
+        ctx.lineTo(player.x + 8 + (this.length - 2) * Math.cos(this.angle),
+                player.y + 8 + (this.length - 2) * Math.sin(this.angle));
         ctx.lineWidth = 3;
         ctx.strokeStyle = "rgba(255, 0, 0, 0.4)";
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(player.x + 16, player.y + 16);
-        ctx.lineTo(player.x + 16 + this.length * Math.cos(this.angle),
-                player.y + 16 + this.length * Math.sin(this.angle));
+        ctx.moveTo(player.x + 8, player.y + 8);
+        ctx.lineTo(player.x + 8 + this.length * Math.cos(this.angle),
+                player.y + 8 + this.length * Math.sin(this.angle));
         ctx.lineWidth = 1;
         ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(player.x + 16, player.y + 16);
-        ctx.lineTo(player.x + 16 + this.static * Math.cos(this.angle),
-                player.y + 16 + this.static * Math.sin(this.angle));
-        ctx.lineWidth = 3;
+        ctx.moveTo(player.x + 8, player.y + 8);
+        ctx.lineTo(player.x + 8 + this.static * Math.cos(this.angle),
+                player.y + 8 + this.static * Math.sin(this.angle));
+        ctx.lineWidth = Math.random() * 3;
         ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
         ctx.stroke();
 
         this.static = this.static + 20;
 
-        console.log(this.static);
         if (this.static > this.length)
             this.static = 0;
+    }
+    beam.intersect = function(a, b, c, d, p, q, r, s)
+    {
+        // returns true iff the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+        var det, gamma, lambda;
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+            return false;
+        } else {
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
     }
     return beam;
 }
@@ -307,7 +346,12 @@ document.addEventListener('mousemove', function(e) {
     mouseY = (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
 }, false);
 
-function step() {
+let counter = 0;
+let start = null;
+
+function step(timestamp) {
+    if (!start) start = timestamp;
+    let progress = timestamp - start;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -333,11 +377,54 @@ function step() {
 
     healthBar.draw();
 
+    entities.forEach(function(element, index, object) {
+        if(beam.active) {
+            let hit = beam.intersect(
+                player.x + 8,
+                player.y + 8,
+                player.x + 8 + (beam.length - 4) * Math.cos(beam.angle),
+                player.y + 8 + (beam.length - 4) * Math.sin(beam.angle),
+                element.x,
+                element.y,
+                element.x + 10,
+                element.y + 10
+            );
+            if (hit) {
+                object.splice(index, 1);
+                healthBar.update(+5);
+                score++;
+                if (score % 10 == 1)
+                    counterMod++;
+
+                for(let i = 0; i < 3; i++)
+                    particles.push(Particle(element.x, element.y, "rgba(255, 255, 255, 0.8)"));
+            }
+        }
+        element.draw();
+    });
+
     particles.forEach(element => {
         element.draw();
     });
 
+    if(counter > 200) {
+        entities.push(Entity(random(10, 1110), random(10,650)));
+        counter = 0;
+    }
 
+    counter += counterMod;
+
+    ctx.font = "14px Courier";
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = "right";
+    ctx.fillText(score, 1110, 20);
+
+    let dateObject = new Date(progress);
+
+    ctx.font = "14px Courier";
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = "center";
+    ctx.fillText(dateObject.getUTCMinutes() + ":" + dateObject.getUTCSeconds(), 1120 / 2, 20);
 
     bgPos += 0.5;
     fgPos += 1;
@@ -345,12 +432,30 @@ function step() {
     if (bgPos == 1120) bgPos = 0;
     if (fgPos == 1120) fgPos = 0;
 
-	window.requestAnimationFrame(step);
+    gameRun = window.requestAnimationFrame(step);
+    
+    if(healthBar.health < 0 || entities.length > 10) {
+        window.cancelAnimationFrame(gameRun);
+
+        ctx.font = "80px Courier";
+        ctx.fillStyle = 'red';
+        ctx.textAlign = "center";
+        ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2);    
+    }
 }
 
 // lägg till canvas på sidan och skala om dem vid resize och scroll
 let body = document.getElementsByTagName('body')[0];
 body.appendChild(canvas);
 
+function random(min,max) {
+    return Math.floor(Math.random()*(max-min)) + min;
+}
 
-
+function randomColor() {
+    var value = 500;
+    var r = 50+(Math.floor(Math.random()*205));
+    var g = 0;
+    var b = 50+(Math.floor(Math.random()*205));
+    return "rgba(" + r + "," + g + "," + b + ", 0.5)"
+}
