@@ -64,33 +64,37 @@ const Player = function(x, y, id) {
     player.speed = 8;
     player.healthTick = 0;
     player.size = 16;
+    player.offset = player.size / 2;
     player.draw = function() {
         if (beam.active) {
             // ctx.drawImage(images.playerDanger, this.x, this.y);
             ctx.beginPath();
             ctx.rect(this.x, this.y, this.size, this.size);
-            ctx.fillStyle = 'rgba(255,55,55,0.5)';
+            ctx.fillStyle = 'rgba(255, 55, 55, 0.5)';
             ctx.fill();
         } else if(this.y < dangerLevel) {
             // ctx.drawImage(images.playerDanger, this.x, this.y);
             ctx.beginPath();
             ctx.rect(this.x, this.y, this.size, this.size);
-            ctx.fillStyle = 'rgba(255,55,55,0.5)';
+            ctx.fillStyle = 'rgba(255, 55, 55, 0.5)';
             ctx.fill();
         } else if(this.y < warningLevel) {
             // ctx.drawImage(images.playerWarning, this.x, this.y);
             ctx.beginPath();
             ctx.rect(this.x, this.y, this.size, this.size);
-            ctx.fillStyle = 'rgba(200,100,100,0.7)';
+            ctx.fillStyle = 'rgba(200, 100, 100, 0.7)';
             ctx.fill();
         } else {
             // ctx.drawImage(images.player, this.x, this.y);
             ctx.beginPath();
             ctx.rect(this.x, this.y, this.size, this.size);
-            ctx.fillStyle = 'rgba(155,155,155,0.9)';
+            ctx.fillStyle = 'rgba(155, 155, 155, 0.9)';
             ctx.fill();
         }
-
+        ctx.beginPath();
+        ctx.rect(this.x + this.offset / 2, this.y + this.offset / 2, this.offset, this.offset);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fill();
     }
     player.update = function() {
         if(move.right && this.x < 1088 ) this.x = this.x + this.speed;
@@ -162,8 +166,8 @@ const Entity = function(x, y, character, size)
 const Particle = function(x, y, color)
 {
     let particle = {};
-    particle.x = x + 8;
-    particle.y = y + 8;
+    particle.x = x + player.offset;
+    particle.y = y + player.offset;
     particle.dy = 1 + (Math.random()*3);
     particle.dx = -1 + (Math.random()*2);
     particle.color = (color) ? color :
@@ -243,33 +247,33 @@ const Beam = function()
     beam.draw = function ()
     {
         ctx.beginPath();
-        ctx.moveTo(player.x + 8, player.y + 8);
-        ctx.lineTo(player.x + 8 + (this.length - 4) * Math.cos(this.angle),
-                player.y + 8 + (this.length - 4) * Math.sin(this.angle));
+        ctx.moveTo(player.x + player.offset, player.y + player.offset);
+        ctx.lineTo(player.x + player.offset + (this.length - 4) * Math.cos(this.angle),
+                player.y + player.offset + (this.length - 4) * Math.sin(this.angle));
         ctx.lineWidth = 7;
         ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(player.x + 8, player.y + 8);
-        ctx.lineTo(player.x + 8 + (this.length - 2) * Math.cos(this.angle),
-                player.y + 8 + (this.length - 2) * Math.sin(this.angle));
+        ctx.moveTo(player.x + player.offset, player.y + player.offset);
+        ctx.lineTo(player.x + player.offset + (this.length - 2) * Math.cos(this.angle),
+                player.y + player.offset + (this.length - 2) * Math.sin(this.angle));
         ctx.lineWidth = 3;
         ctx.strokeStyle = "rgba(255, 0, 0, 0.4)";
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(player.x + 8, player.y + 8);
-        ctx.lineTo(player.x + 8 + this.length * Math.cos(this.angle),
-                player.y + 8 + this.length * Math.sin(this.angle));
+        ctx.moveTo(player.x + player.offset, player.y + player.offset);
+        ctx.lineTo(player.x + player.offset + this.length * Math.cos(this.angle),
+                player.y + player.offset + this.length * Math.sin(this.angle));
         ctx.lineWidth = 1;
         ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(player.x + 8, player.y + 8);
-        ctx.lineTo(player.x + 8 + this.static * Math.cos(this.angle),
-                player.y + 8 + this.static * Math.sin(this.angle));
+        ctx.moveTo(player.x + player.offset, player.y + player.offset);
+        ctx.lineTo(player.x + player.offset + this.static * Math.cos(this.angle),
+                player.y + player.offset + this.static * Math.sin(this.angle));
         ctx.lineWidth = Math.random() * 3;
         ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
         ctx.stroke();
@@ -315,6 +319,18 @@ document.addEventListener("keydown", function(e) {
 		case "s":
             move.down = true;
             break;
+        case "D":
+            move.right = true;
+            break;
+        case "A":
+            move.left = true;
+            break;
+        case "W":
+            move.up = true;
+            break;
+        case "S":
+            move.down = true;
+            break;
         case " ":
             beam.active = true;
         }
@@ -333,6 +349,18 @@ document.addEventListener("keyup", function(e) {
             move.up = false;
             break;
 		case "s":
+            move.down = false;
+            break;
+        case "D":
+            move.right = false;
+            break;
+        case "A":
+            move.left = false;
+            break;
+        case "W":
+            move.up = false;
+            break;
+        case "S":
             move.down = false;
             break;
         case " ":
