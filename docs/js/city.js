@@ -1,4 +1,3 @@
-/* Skapa ett canvas och sätt storleken till fönstrets storlek */
 let canvas = document.createElement('canvas');
 let ctx = canvas.getContext('2d');
 canvas.setAttribute("id", "game");
@@ -13,10 +12,10 @@ let entities = [];
 let gameRun;
 let score = 0;
 let counterMod = 1;
-let bgAudio = new Audio('audio/songtember19_5_2.wav');
-bgAudio.volume = 0.3;
+let bgAudio = new Audio('audio/songtember19_5_2.mp3');
+bgAudio.volume = 0.2;
 
-const PI_2 = 2*Math.PI;
+const PI_2 = 2 * Math.PI;
 
 const safeLevel = 650;
 const warningLevel = 400;
