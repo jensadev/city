@@ -374,6 +374,16 @@ document.addEventListener('mousemove', function(e) {
     mouseY = (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
 }, false);
 
+document.addEventListener('mousedown', function(e) {
+    console.log(e);
+    beam.active = true;
+}, false);
+
+document.addEventListener('mouseup', function(e) {
+    console.log(e);
+    beam.active = false;
+}, false);
+
 let counter = 0;
 let start = null;
 
