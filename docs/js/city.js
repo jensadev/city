@@ -427,18 +427,18 @@ function step(timestamp) {
     entities.forEach(function(element, index, object) {
         if(beam.active) {
             let hit = beam.intersect(
-                player.x + 8,
-                player.y + 8,
-                player.x + 8 + (beam.length - 4) * Math.cos(beam.angle),
-                player.y + 8 + (beam.length - 4) * Math.sin(beam.angle),
-                element.x,
-                element.y,
-                element.x + 10,
-                element.y + 10
+                player.x + player.offset,
+                player.y + player.offset,
+                player.x + player.offset + (beam.length - 4) * Math.cos(beam.angle),
+                player.y + player.offset + (beam.length - 4) * Math.sin(beam.angle),
+                element.x -2,
+                element.y -2,
+                element.x + 12,
+                element.y + 12
             );
             if (hit) {
                 object.splice(index, 1);
-                healthBar.update(+5);
+                healthBar.update(+3);
                 score++;
                 if (score % 10 == 1)
                     counterMod++;
@@ -455,7 +455,7 @@ function step(timestamp) {
     });
 
     if(counter > 200) {
-        entities.push(Entity(random(10, 1110), random(10,650)));
+        entities.push(Entity(random(30, 1090), random(30,650)));
         counter = 0;
     }
 
