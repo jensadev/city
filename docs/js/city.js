@@ -26,13 +26,20 @@ let dangerDamage = 5;
 let beamDamage = 8;
 let healthRegen = 20;
 
+let counter = 0;
+let start = null;
+let moveParticle = 0;
+
+// move objekt för att hålla reda på hur spelaren flyttar på sig
+let move = { right: false, left: false, up: false, down: false }
+
 const sources = {
-    bg: 'city/bg.png',
-    fg: 'city/fg.png',
-    sky: 'city/sky.png',
-    player: 'city/player.png',
-    playerDanger: 'city/player_danger.png',
-    playerWarning: 'city/player_warning.png'
+    bg: 'img/bg.png',
+    fg: 'img/fg.png',
+    sky: 'img/sky.png',
+    player: 'img/player.png',
+    playerDanger: 'img/player_danger.png',
+    playerWarning: 'img/player_warning.png'
 };
 
 function loadImages(sources, callback) {
@@ -59,19 +66,6 @@ function init()
     window.removeEventListener("keypress", init);
     window.requestAnimationFrame(step);
 }
-
-loadImages(sources, function() {
-    ctx.drawImage(images.sky, 0 , 0, 1120, 800);	
-    ctx.drawImage(images.bg, bgPos, 0);	
-    ctx.drawImage(images.bg, bgPos - 1120, 0);	
-    ctx.drawImage(images.fg, fgPos, 0);
-    ctx.drawImage(images.fg, fgPos - 1120, 0);
-    ctx.font = "80px Courier";
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = "center";
-    ctx.fillText("Press to play", canvas.width / 2, canvas.height / 2);
-    window.addEventListener("keypress", init, false);
-});
 
 const Player = function(x, y, id) {
     const player = {};
@@ -153,8 +147,6 @@ const Player = function(x, y, id) {
 
     return player;    
 }
-
-let player = Player(1120 / 2, 600, 1);
 
 const Entity = function(x, y, character, size)
 {
@@ -252,8 +244,6 @@ const HealthBar = function()
     return healthBar;
 }
 
-let healthBar = HealthBar();
-
 const Beam = function()
 {
     const beam = {};
@@ -327,11 +317,6 @@ const Beam = function()
     return beam;
 }
 
-let beam = Beam();
-
-// move objekt för att hålla reda på hur spelaren flyttar på sig
-let move = { right: false, left: false, up: false, down: false }
-
 // Keydown på movement
 document.addEventListener("keydown", function(e) {
 	switch(e.key) {
@@ -359,8 +344,6 @@ document.addEventListener("keydown", function(e) {
         case "S":
             move.down = true;
             break;
-        case " ":
-            beam.active = true;
         }
 });
 
@@ -391,8 +374,6 @@ document.addEventListener("keyup", function(e) {
         case "S":
             move.down = false;
             break;
-        case " ":
-                beam.active = false;
         }
 });
 
@@ -410,9 +391,22 @@ document.addEventListener('mouseup', function(e) {
     beam.active = false;
 }, false);
 
-let counter = 0;
-let start = null;
-let moveParticle = 0;
+loadImages(sources, function() {
+    ctx.drawImage(images.sky, 0 , 0, 1120, 800);	
+    ctx.drawImage(images.bg, bgPos, 0);	
+    ctx.drawImage(images.bg, bgPos - 1120, 0);	
+    ctx.drawImage(images.fg, fgPos, 0);
+    ctx.drawImage(images.fg, fgPos - 1120, 0);
+    ctx.font = "80px Courier";
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = "center";
+    ctx.fillText("Press to play", canvas.width / 2, canvas.height / 2);
+    window.addEventListener("keypress", init, false);
+});
+
+let healthBar = HealthBar();
+let beam = Beam();
+let player = Player(1120 / 2, 600, 1);
 
 function step(timestamp) {
     if (!start) start = timestamp;
@@ -537,12 +531,4 @@ body.appendChild(canvas);
 
 function random(min,max) {
     return Math.floor(Math.random()*(max-min)) + min;
-}
-
-function randomColor() {
-    var value = 500;
-    var r = 50+(Math.floor(Math.random()*205));
-    var g = 0;
-    var b = 50+(Math.floor(Math.random()*205));
-    return "rgba(" + r + "," + g + "," + b + ", 0.5)"
 }
